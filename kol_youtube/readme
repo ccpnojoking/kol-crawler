@@ -1,0 +1,39 @@
+逻辑:
+通过视频获取作者信息
+
+方案一 运营提供关键词
+
+1. 抓取 key_word 列表;
+key_words
+1.1
+default(insert): 1. key_word; 2. source; 3.is_crawled(init); 4. updated_at; 5. belong_to; 6. repeated_count; 7. order_by_method(相关性)
+1.2.1
+crawled(success update): 1. is_crawled(success); 2. updated_at
+1.2.2
+crawled(fail update): 1. is_crawled(fail); 2. updated_at
+
+2. 抓取 video 信息;
+videos
+2.1
+default(insert): 1. video_id; 2. source; 3. is_crawled(init); 4. created_at; 5. key_word; 6. belong_to; 7. origin_url; 8. key_word_repeated_count
+2.2.1
+crawled(success update): 1. title; 2. description; 3. likes; 4. dislikes; 5. views; 6. comments; 7. uploaded_at; 8. is_crawled(success); 9. updated_at; 10. author_id
+2.2.2
+crawled(fail update): 1. is_crawled(fail); 2. updated_at
+
+3. 抓取 author 信息;
+authors
+3.1
+default(insert): 1. author_id; 2. source; 3. is_crawled(init); 4. created_at; 5. belong_to; 6. origin_url;
+3.2.1
+crawled(success update): 1. name; 2. description; 3. country_code; 4. emails; 5. subscribers; 6. avg_views; 7. avg_comments; 8. median_views; 9. variance_views; 10. max_views; 11. min_views; 12. views_list; 13. comments_list; 14.videos_count; 15. is_crawled(success); 16 updated_at; 17. is_sent(boolean)
+3.2.2
+crawled(fail update): 1. is_crawled(fail); 2. updated_at
+
+方案二 运营提供视频
+1. extract video_id 视频链接
+重复 方案一 2, 3 步骤
+
+YouTube Data API V3
+youtube_api_keys
+1. api_key; 2. limit; 3. updated_at; 4.error

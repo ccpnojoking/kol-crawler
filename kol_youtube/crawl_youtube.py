@@ -13,7 +13,7 @@ sys.path.append(DIR + '/../utils')
 
 from youtube_utils import YouTubeInfo
 
-MAX_LOAD_COUNT = 2
+MAX_LOAD_COUNT = 10
 MAX_RETRY_COUNT = 2
 
 

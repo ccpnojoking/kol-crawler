@@ -145,6 +145,103 @@ class DbClient:
 
         return self.__call_with_retry(__get_youtube_api_key)
 
+    def get_google_sheet_id(self, name, title):
+        def __get_google_sheet_id():
+            return self.readon_sheets.find_one(
+                {'belong_to': name, 'title': title}
+            )
+
+        return self.__call_with_retry(__get_google_sheet_id)
+
+    def upsert_kol(self, origin_url, update_field):
+        def __upsert_kol():
+            return self.readon_kols.update_one(
+                {'origin_url': origin_url},
+                {'$set': update_field},
+                upsert=True
+            )
+
+        return self.__call_with_retry(__upsert_kol)
+
+    def update_kol(self, origin_url, update_field):
+        def __update_kol():
+            return self.readon_kols.update_one(
+                {'origin_url': origin_url},
+                {'$set': update_field},
+            )
+
+        return self.__call_with_retry(__update_kol)
+
+    def find_kols(self,  query):
+        def __find_kols():
+            return list(self.readon_kols.find(query))
+
+        return self.__call_with_retry(__find_kols)
+
+    def find_kol(self, author_id, source):
+        def __find_kol():
+            return self.readon_kols.find_one(
+                {'author_id': author_id, 'source': source}
+            )
+
+        return self.__call_with_retry(__find_kol)
+
+    def insert_sheet(self, sheet_info):
+        def __insert_sheet():
+            return self.readon_sheets.insert_one(sheet_info)
+
+        return self.__call_with_retry(__insert_sheet)
+
+    def insert_cooperation(self, cooperation):
+        def __insert_cooperation():
+            return self.cooperations.insert_one(cooperation)
+
+        return self.__call_with_retry(__insert_cooperation)
+
+    def find_cooperations(self,  query):
+        def __find_cooperations():
+            return list(self.cooperations.find(query))
+
+        return self.__call_with_retry(__find_cooperations)
+
+    def find_cooperation(self,  cooperation_id):
+        def __find_cooperation():
+            return self.cooperations.find_one({'cooperation_id': cooperation_id})
+
+        return self.__call_with_retry(__find_cooperation)
+
+    def update_cooperation(self,  cooperation_id, update_filed):
+        def __update_cooperation():
+            return self.cooperations.update_one(
+                {'cooperation_id': cooperation_id},
+                {'$set': update_filed}
+            )
+
+        return self.__call_with_retry(__update_cooperation)
+
+    def get_latest_message(self, cooperation_id, belong_to):
+        def __get_latest_message():
+            messages = list(self.messages.find(
+                {'cooperation_id': cooperation_id, 'belong_to': belong_to}))
+            if not messages:
+                return ''
+            messages.sort(key=lambda x: x['created_at'], reverse=True)
+            return messages[0]['content']
+
+        return self.__call_with_retry(__get_latest_message)
+
+    def get_messages(self, cooperation_id):
+        def __get_messages():
+            return list(self.messages.find({'cooperation_id': cooperation_id}))
+
+        return self.__call_with_retry(__get_messages)
+
+    def insert_message(self, message):
+        def __insert_message():
+            return self.messages.insert_one(message)
+
+        return self.__call_with_retry(__insert_message)
+
     def __call_with_retry(self, callback, times=0):
         try:
             return callback()
@@ -170,11 +267,21 @@ class DbClient:
         self.readon_videos = readon_db.Videos
         self.readon_authors = readon_db.Authors
         self.youtube_api_keys = readon_db.Youtube_api_keys
+        self.readon_sheets = readon_db.Sheets
+        self.readon_kols = readon_db.Kols
+        self.cooperations = readon_db.Cooperations
+        self.messages = readon_db.Messages
 
 
 def main():
-    test_db = DbClient(None, test_only=True)
-    test_db.insert_youtube_api_key('AIzaSyDBj1U8vzMxS-JWbwFfja-dsmiQ0Sjqtr8')
+    test_db = DbClient(None)
+    sheet_info = {
+        'sheet_id': '1s0No8lGQmA4IH9l-1xaE67RV_YZUHPvspVHwofrzQ9g',
+        'belong_to': 'kol_main',
+        'title': 'kol_wanted_status'
+    }
+    test_db.insert_sheet(sheet_info)
+    # test_db.insert_youtube_api_key('AIzaSyDBj1U8vzMxS-JWbwFfja-dsmiQ0Sjqtr8')
 
 
 if __name__ == '__main__':

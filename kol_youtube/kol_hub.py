@@ -78,10 +78,10 @@ class KOLHub:
         if video_in_db:
             return False
         self.db_client.insert_video(video)
-        self.logger.info(keyword)
+        self.logger.info(video)
         return True
 
-    def insert_author(self, author_id, belong_to, emails):
+    def insert_author(self, author_id, belong_to, emails, keyword):
         """
         default(insert):
         1. author_id;
@@ -97,6 +97,7 @@ class KOLHub:
             return False
         author = {
             'author_id': author_id,
+            'keyword': keyword,
             'source': 'youtube',
             'is_crawled': 'init',
             'created_at': datetime.utcnow(),
@@ -122,9 +123,11 @@ class KOLHub:
         )
         return True
 
-    def get_keyword_task(self):
+    def get_keyword_task(self, belong_to):
+        sheet_info = self.db_client.get_google_sheet_id(belong_to, 'keywords')
+        sheet_id = sheet_info['sheet_id']
         crawler = CrawlTaskSheet()
-        keywords = crawler.get_keywords()
+        keywords = crawler.get_keywords(sheet_id)
         self.logger.info(f'keyword count: {len(keywords)}')
         for keyword in keywords:
             self.insert_keyword(keyword)
@@ -192,7 +195,6 @@ class KOLHub:
         videos = self.db_client.find_videos(
             {'source': 'youtube', 'is_crawled': 'init'}
         )
-        videos = videos[0:2]
         for video in videos:
             youtube_api_key = self.db_client.get_youtube_api_key()
             if not youtube_api_key:
@@ -212,7 +214,7 @@ class KOLHub:
             self.db_client.update_video(video['video_id'], 'youtube', crawl_result)
             if not video_info:
                 continue
-            self.insert_author(video_info['author_id'], video['belong_to'], video_info['emails'])
+            self.insert_author(video_info['author_id'], video['belong_to'], video_info['emails'], video['keyword'])
 
     # 抓取作者详细信息
     def get_author_details(self, author):
@@ -322,21 +324,21 @@ class KOLHub:
             author_details['is_crawled'] = 'success'
             author_details['updated_at'] = datetime.utcnow()
             author_details['is_shown'] = False
-            author_details['is_selected'] = False
             self.db_client.update_author(author_details['author_id'], 'youtube', author_details)
             self.logger.info(author_details)
 
+    def run(self, belong_to):
+        self.get_keyword_task(belong_to)
+        self.get_video_task_from_keyword()
+        self.get_author_task_from_video()
+        self.update_author_details()
+
 
 def main():
-    kol_job = KOLHub(True)
-
-    kol_job.get_keyword_task()
-
-    kol_job.get_video_task_from_keyword()
-
-    kol_job.get_author_task_from_video()
-
-    kol_job.update_author_details()
+    kol_job = KOLHub()
+    operators = ['elon']
+    for operator in operators:
+        kol_job.run(operator)
 
 
 if __name__ == '__main__':

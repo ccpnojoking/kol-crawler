@@ -1,0 +1,38 @@
+逻辑：
+
+1. 展示 authors
+涉及：authors(db) [is_shown]
+展示数据 authors(sheet) 分主表格 和 各个运营负责的副表格
+
+
+2. 筛选 kols
+涉及：authors(db) [is_shown][is_selected], kols(db)
+操作 authors(sheet) 对【选中】标记 选中/未选中，选中 补充联系方式；
+读取表格数据，对标记过的数据 更新数据库数据；
+选中：更新 authors(db)[is_shown: True], 添加 kols(db)
+未选中：更新 authors(db)[is_shown: True]
+
+3. kols 发送邮件状态
+涉及：kols(db)[is_sent][sent_count][last_sent_at][is_replied]
+读取 kols 邮件状态，运营标记 已回复邮件，或者其他渠道完成回复的；
+已回复：更新 kols(db)[is_replied: True]
+
+4. kols 合作意愿
+涉及: kols(db)[is_wanted]，cooperations(db)[author_id][source][belong_to][created_at][cooperation_id]
+读取 kols 已回复状态，运营标记 合作意愿
+同意合作：更新 kols[is_wanted: True] 添加 cooperations
+不同意合作: 更新 kols[is_wanted: False]
+未表明态度: 不做处理
+
+5. cooperations 洽谈价格
+涉及: cooperations(db)[default_price][kol_price][operator_price][boss_price][operator_message][boss_message]
+展示 kols 填kol报价，填运营报价，boss报价，运营留言，boss留言
+
+
+6. 确认合作
+涉及: cooperations[price][is_checked_by_operator][is_checked_by_boss][is_]
+
+7. 登记合作视频
+待规划
+
+

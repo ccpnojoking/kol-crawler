@@ -5,7 +5,7 @@ import pandas as pd
 DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(DIR + '/../utils')
 
-from utils.google_sheet_utils import GoogleSheetClient
+from google_sheet_utils import GoogleSheetClient
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 

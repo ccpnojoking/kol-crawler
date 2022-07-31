@@ -35,10 +35,7 @@ class CrawlYoutube:
         options.add_argument('--headless')
         options.add_argument('--disable-gpu')
         options.add_argument('--disable-dev-shm-usage')
-        return webdriver.Chrome(
-            options=options,
-            executable_path='/Users/caibusi/Desktop/projects/kol-crawler/kol_youtube/chromedriver'
-        )
+        return webdriver.Chrome(options=options)
 
     def load_webpage(self, driver, height):
         for retry in range(MAX_RETRY_COUNT):

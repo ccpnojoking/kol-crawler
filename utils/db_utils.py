@@ -275,13 +275,16 @@ class DbClient:
 
 def main():
     test_db = DbClient(None)
-    sheet_info = {
-        'sheet_id': '1s0No8lGQmA4IH9l-1xaE67RV_YZUHPvspVHwofrzQ9g',
-        'belong_to': 'kol_main',
-        'title': 'kol_wanted_status'
-    }
-    test_db.insert_sheet(sheet_info)
-    # test_db.insert_youtube_api_key('AIzaSyDBj1U8vzMxS-JWbwFfja-dsmiQ0Sjqtr8')
+    # sheet_id = '1Rc17L0-eXFZ7NE8U7Meqln8tUQoE210OAhcE7HsoB0k'
+    # belong_to = 'kevin'
+    # for sheet_name in ['keywords', 'kol_wanted_status', 'kol_cooperated_status', 'authors', 'kol_sent_status']:
+    #     sheet_info = {
+    #         'sheet_id': sheet_id,
+    #         'belong_to': belong_to,
+    #         'title': sheet_name
+    #     }
+    #     test_db.insert_sheet(sheet_info)
+    test_db.insert_youtube_api_key('AIzaSyAsjQ-yokxjsV2p3mTEFTU6VxzN-USwm_M')
 
 
 if __name__ == '__main__':

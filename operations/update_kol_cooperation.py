@@ -55,7 +55,7 @@ class UpdateKolCooperation:
             show_authors['Median Views'].append(int(np.median(views_list)))
             show_authors['Avg Comments'].append(int(np.mean(comments_list)))
             show_authors['Median Comments'].append(int(np.median(comments_list)))
-            show_authors['Keyword'].append(author['keyword'])
+            show_authors['Keyword'].append(author.get('keyword', 'None'))
             show_authors['Selected'].append('')
             show_authors['Emails'].append(','.join(author['emails']))
             show_authors['Other Contacts'].append('')
@@ -384,7 +384,7 @@ class UpdateKolCooperation:
         sheet_id = sheet_info['sheet_id']
         cooperation_status_sheet = self.sheet_client.read_dataframe_from_googlesheet(
             sheet_id, 'kol_cooperated_status')
-        if not cooperation_status_sheet:
+        if cooperation_status_sheet.empty:
             self.logger.info('the sheet is empty.')
             return
         for index, cooperation in cooperation_status_sheet.iterrows():
@@ -457,8 +457,8 @@ class UpdateKolCooperation:
 def main():
     update_status_job = UpdateKolCooperation()
 
-    operators = ['elon']
-    show_sheets = ['elon', 'kol_main']
+    operators = ['elon', 'kevin', 'blue']
+    show_sheets = ['elon', 'kevin', 'blue', 'kol_main']
 
     # Selected 标记 0，1 或者 不标记；authors 选中 -> kols
     for operator in operators:
@@ -481,9 +481,9 @@ def main():
     # Operator 标记 KOL Price，Operator Price，Operator Message，Operator Confirmed
     # Boss 标记 Boss Price，Boss Message，Boss Confirmed
     update_status_job.update_boss_kol_cooperated_status()
-    for belong_to in ['elon']:
+    for belong_to in operators:
         update_status_job.update_operator_kol_cooperated_status(belong_to)
-    for belong_to in ['kol_main', 'elon', 'boss_mike']:
+    for belong_to in ['kol_main', 'elon', 'kevin', 'blue', 'boss_mike']:
         update_status_job.update_kol_cooperated_status_sheet(belong_to)
 
 

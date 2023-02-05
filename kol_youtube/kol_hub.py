@@ -336,7 +336,7 @@ class KOLHub:
 
 def main():
     kol_job = KOLHub()
-    operators = ['elon']
+    operators = ['elon', 'kevin', 'blue']
     for operator in operators:
         kol_job.run(operator)
 

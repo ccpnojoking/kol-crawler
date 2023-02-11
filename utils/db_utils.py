@@ -120,6 +120,12 @@ class DbClient:
 
         return self.__call_with_retry(__update_author)
 
+    def find_youtube_api_key(self, query={}):
+        def __find_youtube_api_key():
+            return self.youtube_api_keys.find(query)
+
+        return self.__call_with_retry(__find_youtube_api_key)
+
     def get_youtube_api_key(self):
         def __get_youtube_api_key():
             return self.youtube_api_keys.find_one(
@@ -275,8 +281,8 @@ class DbClient:
 
 def main():
     test_db = DbClient(None)
-    # sheet_id = '1Rc17L0-eXFZ7NE8U7Meqln8tUQoE210OAhcE7HsoB0k'
-    # belong_to = 'kevin'
+    # sheet_id = '1OUXRtMw_XxjNDZfPznNo56D4p0eoBso7LIVxD525cXs'
+    # belong_to = 'yunsoon'
     # for sheet_name in ['keywords', 'kol_wanted_status', 'kol_cooperated_status', 'authors', 'kol_sent_status']:
     #     sheet_info = {
     #         'sheet_id': sheet_id,
@@ -284,7 +290,7 @@ def main():
     #         'title': sheet_name
     #     }
     #     test_db.insert_sheet(sheet_info)
-    test_db.insert_youtube_api_key('AIzaSyAsjQ-yokxjsV2p3mTEFTU6VxzN-USwm_M')
+    test_db.insert_youtube_api_key('AIzaSyAWj3vY_TcV35B_aaPm5YF3gBr019PtGNg')
 
 
 if __name__ == '__main__':

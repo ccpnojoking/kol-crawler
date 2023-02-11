@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import hashlib
 import locale
 import numpy as np
@@ -197,6 +198,25 @@ class UpdateKolCooperation:
             show_kols['Boss Confirmed'].append(is_confirmed_by_boss)
             show_kols['Messages'].append(self.get_messages(cooperation['cooperation_id']))
         return pd.DataFrame(show_kols)
+
+    def update_origin_authors_sheet(self, belong_to):
+        """
+        1. 展示 origin authors
+        涉及：authors(db) [is_shown]
+        展示数据 authors(sheet) 分主表格 和 各个运营负责的副表格
+        :return:
+        """
+        query = {'is_shown': {'$exists': True}}
+        if belong_to != 'kol_main':
+            query['belong_to'] = belong_to
+        authors = self.db_client.find_authors(query)
+        show_authors_sheet = self.get_show_authors_sheet(authors)
+        show_authors_sheet.sort_values(
+            ['Belong To', 'Subscribers', 'Median Views'], ascending=[True, False, False], inplace=True)
+        sheet_info = self.db_client.get_google_sheet_id(belong_to, 'origin_authors')
+        sheet_id = sheet_info['sheet_id']
+        self.sheet_client.clear_googlesheet_values(sheet_id, 'origin_authors')
+        self.sheet_client.write_to_googlesheet(show_authors_sheet, sheet_id, 'origin_authors')
 
     def update_authors_sheet(self, belong_to):
         """
@@ -457,34 +477,47 @@ class UpdateKolCooperation:
 def main():
     update_status_job = UpdateKolCooperation()
 
-    operators = ['elon', 'kevin', 'blue']
-    show_sheets = ['elon', 'kevin', 'blue', 'kol_main']
+    operators = ['elon', 'kevin', 'blue', 'jinglong', 'yunsoon']
+    show_sheets = ['elon', 'kevin', 'blue', 'jinglong', 'yunsoon', 'kol_main']
+
+    # 展示所有作者
+    for belong_to in show_sheets:
+        update_status_job.update_origin_authors_sheet(belong_to)
+        time.sleep(60)
 
     # Selected 标记 0，1 或者 不标记；authors 选中 -> kols
     for operator in operators:
         update_status_job.update_kols(operator)
+        time.sleep(60)
     for belong_to in show_sheets:
         update_status_job.update_authors_sheet(belong_to)
+        time.sleep(60)
 
     # Emails 填充 邮箱 多个邮箱逗号相连；Replied 回复标记 True
     for operator in operators:
         update_status_job.update_kol_sent_status(operator)
+        time.sleep(60)
     for belong_to in show_sheets:
         update_status_job.update_kol_sent_status_sheet(belong_to)
+        time.sleep(60)
 
     # Wanted 标记 0，1 或者不标记
     for operator in operators:
         update_status_job.update_kol_wanted_status(operator)
+        time.sleep(60)
     for belong_to in show_sheets:
         update_status_job.update_kol_wanted_status_sheet(belong_to)
+        time.sleep(60)
 
     # Operator 标记 KOL Price，Operator Price，Operator Message，Operator Confirmed
     # Boss 标记 Boss Price，Boss Message，Boss Confirmed
     update_status_job.update_boss_kol_cooperated_status()
     for belong_to in operators:
         update_status_job.update_operator_kol_cooperated_status(belong_to)
+        time.sleep(60)
     for belong_to in ['kol_main', 'elon', 'kevin', 'blue', 'boss_mike']:
         update_status_job.update_kol_cooperated_status_sheet(belong_to)
+        time.sleep(60)
 
 
 if __name__ == '__main__':

@@ -70,6 +70,9 @@ class CrawlYoutube:
             page = str(bs(driver.page_source, 'lxml'))
             a_tag = '<a aria-label=".*?" class="yt-simple-endpoint style-scope ytd-video-renderer" href="/watch\?v=(.*?)" id="video-title"'
             video_ids = re.findall(a_tag, page)
+            if not video_ids:
+                a_tag = '<a aria-label=".*?" class="ytd-video-renderer-wiz__video-title" href="/watch\?v=(.*?)" title=".*?"'
+                video_ids = re.findall(a_tag, page)
             video_ids = list(set(video_ids))
             self.logger.info(f'key word: {keyword}, videos count: {len(video_ids)}.')
             driver.quit()
@@ -168,7 +171,6 @@ class CrawlYoutube:
             'subscribers': subscribers,
             'emails': list(set(emails))
         }
-
 
 
 def main():

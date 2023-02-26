@@ -19,7 +19,7 @@ class KOLHub:
         self.logger = Logger('kol hub', os.path.join(DIR, 'logs/kol_hub.log'))
         self.db_client = DbClient(self.logger, test_only=is_teat)
 
-    def insert_keyword(self, keyword_info):
+    def insert_keyword(self, keyword_info, belong_to):
         """
         keywords
         default(insert):
@@ -37,7 +37,7 @@ class KOLHub:
             'source': 'youtube',
             'is_crawled': 'init',
             'updated_at': datetime.utcnow(),
-            'belong_to': keyword_info['belong_to'],
+            'belong_to': keyword_info['belong_to'] if keyword_info['belong_to'] else belong_to,
             'order_by_method': keyword_info['order_by_method']
         }
         keyword_in_db = self.db_client.find_keyword(
@@ -130,7 +130,7 @@ class KOLHub:
         keywords = crawler.get_keywords(sheet_id)
         self.logger.info(f'keyword count: {len(keywords)}')
         for keyword in keywords:
-            self.insert_keyword(keyword)
+            self.insert_keyword(keyword, belong_to)
 
     def get_video_task_from_keyword(self):
         """
@@ -327,6 +327,13 @@ class KOLHub:
             self.db_client.update_author(author_details['author_id'], 'youtube', author_details)
             self.logger.info(author_details)
 
+    def reset_youtube_api_limit(self):
+        youtube_api_keys = self.db_client.find_youtube_api_key()
+        for api_key in youtube_api_keys:
+            self.db_client.update_youtube_api_key(
+                api_key['api_key'], {'limit': 5000}
+            )
+
     def run(self, belong_to):
         self.get_keyword_task(belong_to)
         self.get_video_task_from_keyword()
@@ -336,9 +343,10 @@ class KOLHub:
 
 def main():
     kol_job = KOLHub()
-    operators = ['elon']
+    operators = ['elon', 'kevin', 'blue', 'jinglong', 'yunsoon']
     for operator in operators:
         kol_job.run(operator)
+    kol_job.reset_youtube_api_limit()
 
 
 if __name__ == '__main__':

@@ -288,7 +288,7 @@ class UpdateKolCooperation:
         已回复：更新 kols(db)[is_replied: True]
         :return:
         """
-        query = {'is_replied': {'$nin': [True, False]}}
+        query = {'is_replied': {'$ne': False}}
         if belong_to != 'kol_main':
             query['belong_to'] = belong_to
         kol_sent_status = self.db_client.find_kols(query)

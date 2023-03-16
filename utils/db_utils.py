@@ -248,6 +248,24 @@ class DbClient:
 
         return self.__call_with_retry(__insert_message)
 
+    def insert_email(self, email):
+        def __insert_email():
+            return self.emails.insert_one(email)
+
+        return self.__call_with_retry(__insert_email)
+
+    def find_emails(self,  query):
+        def __find_emails():
+            return list(self.emails.find(query))
+
+        return self.__call_with_retry(__find_emails)
+
+    def insert_event(self, event):
+        def __insert_event():
+            return self.events.insert_one(event)
+
+        return self.__call_with_retry(__insert_event)
+
     def __call_with_retry(self, callback, times=0):
         try:
             return callback()
@@ -265,7 +283,7 @@ class DbClient:
         readon_db = mongo_client.readon
 
         if self.test_only:
-            self.logger.info('Running in test mode.')
+            # self.logger.info('Running in test mode.')
             test_db = mongo_client.test
             readon_db = test_db
 
@@ -277,20 +295,21 @@ class DbClient:
         self.readon_kols = readon_db.Kols
         self.cooperations = readon_db.Cooperations
         self.messages = readon_db.Messages
+        self.emails = readon_db.Emails
+        self.events = readon_db.Events
 
 
 def main():
-    test_db = DbClient(None)
-    # sheet_id = '1OUXRtMw_XxjNDZfPznNo56D4p0eoBso7LIVxD525cXs'
-    # belong_to = 'yunsoon'
-    # for sheet_name in ['keywords', 'kol_wanted_status', 'kol_cooperated_status', 'authors', 'kol_sent_status']:
-    #     sheet_info = {
-    #         'sheet_id': sheet_id,
-    #         'belong_to': belong_to,
-    #         'title': sheet_name
-    #     }
-    #     test_db.insert_sheet(sheet_info)
-    test_db.insert_youtube_api_key('AIzaSyAWj3vY_TcV35B_aaPm5YF3gBr019PtGNg')
+    test_db = DbClient(None, test_only=True)
+    sheet_id = '1xjIeDMwtNCct_kQIdgRfeAWzCOtQkKYOZQE5udmQplc'
+    belong_to = 'ccp'
+    sheet_info = {
+        'sheet_id': sheet_id,
+        'belong_to': belong_to,
+        'title': 'email'
+    }
+    test_db.insert_sheet(sheet_info)
+    # test_db.insert_youtube_api_key('AIzaSyAWj3vY_TcV35B_aaPm5YF3gBr019PtGNg')
 
 
 if __name__ == '__main__':

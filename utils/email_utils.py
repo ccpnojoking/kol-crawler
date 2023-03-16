@@ -36,25 +36,23 @@ class EmailClient:
 
     def send(self, email, password, receivers, message):
         domain = re.findall('@(.*)', email)
-        print(domain)
         if not domain:
             return False
         host, port = self.get_smtp_server(domain[0])
         if not all([host, port]):
             return False
-        smtp = smtplib.SMTP(host=host, port=port)
+        smtp = smtplib.SMTP_SSL(host=host, port=port)
         if host == 'smtp.office365.com':
             smtp.starttls()
         smtp.login(email, password)
         response = smtp.sendmail(email, receivers, message.as_string())
-        print(response)
         smtp.quit()
+        return response
 
 
 def main():
     receiver_emails = [
-        'helloccp@126.com',
-        'sid@miyutek.com'
+        'helloccp@126.com'
     ]
     content = '''
     <html>

@@ -32,8 +32,8 @@ class SendJob:
             yield simple[index - 1]
 
     def get_message(self, sender_email, receiver_emails, belong_to, country_code, index):
-        sheet_id = self.db_client.get_google_sheet_id(belong_to, 'email')
-        messages = self.sheet_client.read_dataframe_from_googlesheet(sheet_id, str(index))
+        sheet_info = self.db_client.get_google_sheet_id(belong_to, 'email')
+        messages = self.sheet_client.read_dataframe_from_googlesheet(sheet_info['sheet_id'], str(index))
         subject = messages[SUPPORT_LANGUAGE.get(country_code, 'en')][0]
         content = messages[SUPPORT_LANGUAGE.get(country_code, 'en')][1]
         message = self.email_client.get_html_message(sender_email, receiver_emails, subject, content)
@@ -65,7 +65,7 @@ class SendJob:
                 continue
             email = next(email_loops)
             sent_count = kol.get('sent_count', 0)
-            message = self.get_message(email, kol_emails, belong_to, kol.get('country_code', 'unknown'), sent_count)
+            message = self.get_message(email['email'], kol_emails, belong_to, kol.get('country_code', 'unknown'), sent_count)
             is_sent = False
             try:
                 response = self.email_client.send(email['email'], email['password'], kol_emails, message)
@@ -79,7 +79,7 @@ class SendJob:
                 continue
             self.db_client.update_kol(
                 kol['origin_url'],
-                {'is_sent': False, 'sent_count': sent_count + 1, 'last_sent_at': datetime.utcnow()}
+                {'is_sent': True, 'sent_count': sent_count + 1, 'last_sent_at': datetime.utcnow()}
             )
 
 

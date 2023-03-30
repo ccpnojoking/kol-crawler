@@ -81,7 +81,7 @@ class KOLHub:
         self.logger.info(video)
         return True
 
-    def insert_author(self, author_id, belong_to, emails, keyword):
+    def insert_author(self, author_id, belong_to, emails, keyword, video_details):
         """
         default(insert):
         1. author_id;
@@ -103,7 +103,8 @@ class KOLHub:
             'created_at': datetime.utcnow(),
             'belong_to': belong_to,
             'origin_url': f'https://www.youtube.com/channel/{author_id}',
-            'emails': emails
+            'emails': emails,
+            'video_details': video_details
         }
         self.db_client.insert_author(author)
         self.logger.info(author)
@@ -214,7 +215,16 @@ class KOLHub:
             self.db_client.update_video(video['video_id'], 'youtube', crawl_result)
             if not video_info:
                 continue
-            self.insert_author(video_info['author_id'], video['belong_to'], video_info['emails'], video['keyword'])
+            video_details = {
+                'origin_url': video['origin_url'],
+                'views': video_info['views'],
+                'likes': video_info['likes'],
+                'dislikes': video_info['dislikes'],
+                'comments': video_info['comments'],
+                'upload_at': video_info['upload_at']
+            }
+            self.insert_author(
+                video_info['author_id'], video['belong_to'], video_info['emails'], video['keyword'], video_details)
 
     # 抓取作者详细信息
     def get_author_details(self, author):

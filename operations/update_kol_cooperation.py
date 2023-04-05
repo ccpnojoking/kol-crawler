@@ -26,40 +26,61 @@ class UpdateKolCooperation:
     @staticmethod
     def get_show_authors_sheet(authors):
         show_authors = {
-            'Name': [],
-            'Author ID': [],
-            'Origin Url': [],
-            'Source': [],
+            'Keyword': [],
             'Belong To': [],
+            'Author ID': [],
+            'Source': [],
+            'Name': [],
+            'Channel Url': [],
             'Country Code': [],
             'Subscribers': [],
             'Avg Views': [],
             'Median Views': [],
             'Avg Comments': [],
             'Median Comments': [],
-            'Keyword': [],
+            'Video Url': [],
+            'Video View': [],
+            'Video Like': [],
+            'Video Dislike': [],
+            'Video Comment': [],
+            'Video Upload Date': [],
             'Selected': [],
             'Emails': [],
-            'Other Contacts': []
+            'Other Contacts': [],
+            'LastUpdatedAt': []
         }
+        last_updated_at = datetime.utcnow()
         for author in authors:
-            show_authors['Name'].append(author['name'])
-            show_authors['Author ID'].append(author['author_id'])
-            show_authors['Origin Url'].append(author['origin_url'])
-            show_authors['Source'].append(author['source'])
+            author_id = author['author_id']
+            keyword = author.get('keyword', 'Null')
+            video = author['video_details']
+            views_list = author['views_list']
+            comments_list = author['comments_list']
+            if any([not views_list, not comments_list]):
+                continue
+            show_authors['Keyword'].append(keyword)
             show_authors['Belong To'].append(author['belong_to'])
+            show_authors['Author ID'].append(author_id)
+            show_authors['Source'].append(author['source'])
+            show_authors['Name'].append(author['name'])
+            show_authors['Channel Url'].append(author['origin_url'])
             show_authors['Country Code'].append(author['country_code'])
             show_authors['Subscribers'].append(author['subscribers'])
-            views_list = author['views_list']
             comments_list = author['comments_list']
             show_authors['Avg Views'].append(int(np.mean(views_list)))
             show_authors['Median Views'].append(int(np.median(views_list)))
             show_authors['Avg Comments'].append(int(np.mean(comments_list)))
             show_authors['Median Comments'].append(int(np.median(comments_list)))
-            show_authors['Keyword'].append(author.get('keyword', 'None'))
+            show_authors['Video Url'].append(video['origin_url'])
+            show_authors['Video View'].append(video['views'])
+            show_authors['Video Like'].append(video['likes'])
+            show_authors['Video Dislike'].append(video['dislikes'])
+            show_authors['Video Comment'].append(video['comments'])
+            show_authors['Video Upload Date'].append(video['upload_at'])
             show_authors['Selected'].append('')
             show_authors['Emails'].append(','.join(author['emails']))
             show_authors['Other Contacts'].append('')
+            show_authors['LastUpdatedAt'].append(last_updated_at)
         return pd.DataFrame(show_authors)
 
     @staticmethod
@@ -73,8 +94,10 @@ class UpdateKolCooperation:
             'Sent Status': [],
             'Sent Count': [],
             'Last Sent Datetime': [],
-            'Replied': []
+            'Replied': [],
+            'LastUpdatedAt': []
         }
+        last_updated_at = datetime.utcnow()
         for kol in kols:
             show_kols['Author ID'].append(kol['author_id'])
             show_kols['Source'].append(kol['source'])
@@ -85,6 +108,7 @@ class UpdateKolCooperation:
             show_kols['Sent Count'].append(kol.get('sent_count', ''))
             show_kols['Last Sent Datetime'].append(kol.get('last_sent_at', ''))
             show_kols['Replied'].append('')
+            show_kols['LastUpdatedAt'].append(last_updated_at)
         return pd.DataFrame(show_kols)
 
     @staticmethod
@@ -212,11 +236,12 @@ class UpdateKolCooperation:
         authors = self.db_client.find_authors(query)
         show_authors_sheet = self.get_show_authors_sheet(authors)
         show_authors_sheet.sort_values(
-            ['Belong To', 'Subscribers', 'Median Views'], ascending=[True, False, False], inplace=True)
+            ['Keyword', 'Belong To', 'Subscribers', 'Median Views'], ascending=[True, True, False, False], inplace=True)
         sheet_info = self.db_client.get_google_sheet_id(belong_to, 'origin_authors')
         sheet_id = sheet_info['sheet_id']
         self.sheet_client.clear_googlesheet_values(sheet_id, 'origin_authors')
         self.sheet_client.write_to_googlesheet(show_authors_sheet, sheet_id, 'origin_authors')
+        self.logger.info(f'origin_authors, sheet id: {sheet_id}, belong to: {belong_to}.\n{show_authors_sheet}')
 
     def update_authors_sheet(self, belong_to):
         """
@@ -231,11 +256,12 @@ class UpdateKolCooperation:
         authors = self.db_client.find_authors(query)
         show_authors_sheet = self.get_show_authors_sheet(authors)
         show_authors_sheet.sort_values(
-            ['Belong To', 'Subscribers', 'Median Views'], ascending=[True, False, False], inplace=True)
+            ['Keyword', 'Belong To', 'Subscribers', 'Median Views'], ascending=[True, True, False, False], inplace=True)
         sheet_info = self.db_client.get_google_sheet_id(belong_to, 'authors')
         sheet_id = sheet_info['sheet_id']
         self.sheet_client.clear_googlesheet_values(sheet_id, 'authors')
         self.sheet_client.write_to_googlesheet(show_authors_sheet, sheet_id, 'authors')
+        self.logger.info(f'authors, sheet id: {sheet_id}, belong to: {belong_to}.\n{show_authors_sheet}')
 
     def update_kols(self, belong_to):
         """
@@ -288,7 +314,7 @@ class UpdateKolCooperation:
         已回复：更新 kols(db)[is_replied: True]
         :return:
         """
-        query = {'is_replied': {'$nin': [True, False]}}
+        query = {'is_replied': {'$ne': False}}
         if belong_to != 'kol_main':
             query['belong_to'] = belong_to
         kol_sent_status = self.db_client.find_kols(query)
@@ -302,6 +328,7 @@ class UpdateKolCooperation:
         sheet_id = sheet_info['sheet_id']
         self.sheet_client.clear_googlesheet_values(sheet_id, 'kol_sent_status')
         self.sheet_client.write_to_googlesheet(show_kol_sent_status_sheet, sheet_id, 'kol_sent_status')
+        self.logger.info(f'kol_sent_status, sheet id: {sheet_id}, belong to: {belong_to}.\n{show_kol_sent_status_sheet}')
 
     def update_kol_sent_status(self, belong_to):
         sheet_info = self.db_client.get_google_sheet_id(belong_to, 'kol_sent_status')
@@ -480,44 +507,47 @@ def main():
     operators = ['elon', 'kevin', 'blue', 'jinglong', 'yunsoon']
     show_sheets = ['elon', 'kevin', 'blue', 'jinglong', 'yunsoon', 'kol_main']
 
+    interval_seconds = 20
+
     # 展示所有作者
     for belong_to in show_sheets:
         update_status_job.update_origin_authors_sheet(belong_to)
-        time.sleep(60)
+        time.sleep(interval_seconds)
 
     # Selected 标记 0，1 或者 不标记；authors 选中 -> kols
     for operator in operators:
         update_status_job.update_kols(operator)
-        time.sleep(60)
+        time.sleep(interval_seconds)
     for belong_to in show_sheets:
         update_status_job.update_authors_sheet(belong_to)
-        time.sleep(60)
+        time.sleep(interval_seconds)
 
     # Emails 填充 邮箱 多个邮箱逗号相连；Replied 回复标记 True
     for operator in operators:
         update_status_job.update_kol_sent_status(operator)
-        time.sleep(60)
+        time.sleep(interval_seconds)
     for belong_to in show_sheets:
         update_status_job.update_kol_sent_status_sheet(belong_to)
-        time.sleep(60)
+        time.sleep(interval_seconds)
+    return
 
     # Wanted 标记 0，1 或者不标记
     for operator in operators:
         update_status_job.update_kol_wanted_status(operator)
-        time.sleep(60)
+        time.sleep(interval_seconds)
     for belong_to in show_sheets:
         update_status_job.update_kol_wanted_status_sheet(belong_to)
-        time.sleep(60)
+        time.sleep(interval_seconds)
 
     # Operator 标记 KOL Price，Operator Price，Operator Message，Operator Confirmed
     # Boss 标记 Boss Price，Boss Message，Boss Confirmed
     update_status_job.update_boss_kol_cooperated_status()
     for belong_to in operators:
         update_status_job.update_operator_kol_cooperated_status(belong_to)
-        time.sleep(60)
+        time.sleep(interval_seconds)
     for belong_to in ['kol_main', 'elon', 'kevin', 'blue', 'boss_mike']:
         update_status_job.update_kol_cooperated_status_sheet(belong_to)
-        time.sleep(60)
+        time.sleep(interval_seconds)
 
 
 if __name__ == '__main__':
